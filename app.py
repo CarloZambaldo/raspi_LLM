@@ -11,7 +11,7 @@ LOG_FILE = "chat_log.txt"
 
 #model_cache = {}  # opzionale se vuoi tenerne uno attivo
 app = Flask(__name__)
-MODEL_DIR = "models/"  # Directory where models are stored
+MODEL_DIR = os.environ.get("MODEL_DIR", "models/")  # Directory where models are stored
 AVAILABLE_MODELS = []
 
 
@@ -25,23 +25,19 @@ def log_interaction(user_ip, model, question, answer):
 
 # === Load models at startup ===
 def load_models():
-	global AVAILABLE_MODELS
-	if not os.path.exists(MODEL_DIR):
-		print("❌ La cartella 'models/' non esiste!")
-		AVAILABLE_MODELS = []
-		return
+        global AVAILABLE_MODELS
+        # Assicurati che la cartella dei modelli esista
+        os.makedirs(MODEL_DIR, exist_ok=True)
 
-	# Elenca i file .gguf
-	AVAILABLE_MODELS = [
-		f for f in os.listdir(MODEL_DIR)
-		if f.endswith(".gguf")
-	]
-	print("✅ Modelli trovati:", AVAILABLE_MODELS)
+        # Elenca i file .gguf presenti nella cartella
+        AVAILABLE_MODELS = [
+                f for f in os.listdir(MODEL_DIR)
+                if f.endswith(".gguf")
+        ]
+        print("✅ Modelli trovati:", AVAILABLE_MODELS)
 
-	# Se non ci sono modelli, mostra un messaggio
-	if not AVAILABLE_MODELS:
-		print("❌ Nessun modello trovato!")
-		return
+        if not AVAILABLE_MODELS:
+                print("⚠️ Nessun modello trovato nella cartella 'models/'.")
 
 @app.route("/")
 def index():
